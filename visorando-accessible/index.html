@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trouver une randonnée · Visorando (refonte)</title>
+  <meta name="description" content="Refonte accessible de Visorando : rechercher, filtrer et consulter des randonnées autour de Lyon et dans le Pilat, au clavier comme au lecteur d'écran.">
+  <meta name="theme-color" content="#4F6B0C">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234F6B0C'/%3E%3Cpath d='M6 22 13 11l4 6 3-4 6 9Z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preload" href="assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/bricolage-grotesque-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#/">visorando<span class="vh"> – refonte accessible, accueil</span></a>
+      <button type="button" class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="menu-panel">
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Menu
+      </button>
+      <nav class="menu-panel" id="menu-panel" aria-label="Navigation principale" hidden>
+        <ul>
+          <li><a href="#/" data-nav="accueil">Trouver une randonnée</a></li>
+          <li><a href="#/recherche?lieu=Lyon" data-nav="recherche">Carte des randonnées</a></li>
+          <li><a href="#/favoris" data-nav="favoris">Mes favoris <span class="badge" id="fav-count" aria-hidden="true">0</span><span class="vh" id="fav-count-sr"></span></a></li>
+          <li><a href="#/accessibilite" data-nav="accessibilite">Accessibilité</a></li>
+        </ul>
+        <div class="menu-foot">
+          <button type="button" class="toggle" data-annot aria-pressed="false">Montrer les corrections RGAA <span class="sw" aria-hidden="true"></span></button>
+          <p class="muted" style="font-size:.85rem;padding-inline:6px">Projet de cours, sans lien avec le site officiel.</p>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <div id="annonce" class="vh" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <main id="contenu" tabindex="-1">
+    <div class="wrap loading"><p>Chargement des randonnées…</p></div>
+  </main>
+
+  <section class="photo-hero cta on-photo" aria-labelledby="cta-title">
+    <img class="bg" src="assets/img/footer-1200.jpg" srcset="assets/img/footer-1200.jpg 1200w, assets/img/footer-2000.jpg 2000w" sizes="100vw" alt="" loading="lazy">
+    <div class="wrap">
+      <svg class="cta-logo" viewBox="0 0 220 56" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M0 54 18 8l9 20 7-12 13 38Z"/>
+        <path fill="currentColor" d="M44 54 62 4h4l19 50Z"/>
+        <path fill="currentColor" d="M88 54V18l10-12 10 12v36Z"/>
+        <path fill="currentColor" d="M112 54l14-34 8 14 10-26 18 46Z"/>
+        <path fill="currentColor" d="M166 54 186 10l12 22 6-10 16 32Z"/>
+      </svg>
+      <h2 id="cta-title">Préparez-vous à conquérir de nouveaux sommets</h2>
+      <button type="button" class="btn btn-dark btn-sm" id="signup-btn" aria-haspopup="dialog">Inscrivez-vous gratuitement</button>
+    </div>
+    <p class="photo-credit" data-credit="footer"></p>
+  </section>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-cols">
+        <section aria-labelledby="ft-explore">
+          <h2 id="ft-explore">Explorer</h2>
+          <ul>
+            <li><a href="#/recherche?lieu=Lyon">Randonnées autour de Lyon</a></li>
+            <li><a href="#/recherche?lieu=Massif%20du%20Pilat&amp;rayon=25">Massif du Pilat</a></li>
+            <li><a href="#/recherche?lieu=Lyon&amp;rayon=100&amp;tags=famille">Balades en famille</a></li>
+            <li><a href="#/recherche?lieu=Lyon&amp;rayon=100&amp;tags=transports">Sans voiture</a></li>
+            <li><a href="#/favoris">Mes favoris</a></li>
+          </ul>
+        </section>
+        <section aria-labelledby="ft-proj">
+          <h2 id="ft-proj">Le projet</h2>
+          <ul>
+            <li><a href="#/accessibilite">Accessibilité de la refonte</a></li>
+            <li><a href="#/accessibilite">Corrections de l'audit RGAA</a></li>
+          </ul>
+          <p style="margin-top:10px;font-size:.92rem">Maquette codée après un audit RGAA 4.1.2 partiel de visorando.com. Projet de cours, sans lien avec le site officiel.</p>
+        </section>
+        <section aria-labelledby="ft-data">
+          <h2 id="ft-data">Données</h2>
+          <ul>
+            <li>Itinéraires : Geotrek Auvergne-Rhône-Alpes Tourisme</li>
+            <li>Cartes : IGN Géoplateforme, OpenStreetMap</li>
+            <li>Météo : Open-Meteo</li>
+          </ul>
+          <details style="margin-top:10px">
+            <summary>Crédits photos</summary>
+            <ul id="photo-credits"></ul>
+          </details>
+        </section>
+        <section aria-labelledby="ft-a11y">
+          <h2 id="ft-a11y">Mode étude</h2>
+          <button type="button" class="toggle" data-annot aria-pressed="false">Montrer les corrections RGAA <span class="sw" aria-hidden="true"></span></button>
+          <p style="margin-top:8px;font-size:.92rem">Affiche le numéro du critère corrigé sur chaque élément de la page.</p>
+        </section>
+      </div>
+      <div class="foot-bottom">
+        <p><span class="brand" style="font-size:1.2rem">visorando</span> · refonte accessible</p>
+        <p><kbd>Tab</kbd> avancer · <kbd>Entrée</kbd> activer · <kbd>Échap</kbd> fermer · <kbd>←</kbd> <kbd>→</kbd> curseurs</p>
+      </div>
+    </div>
+  </footer>
+
+  <dialog id="filters" aria-labelledby="h-filtres"></dialog>
+  <dialog id="lightbox" class="lightbox" aria-labelledby="lb-title"></dialog>
+  <dialog id="signup" aria-labelledby="h-signup"></dialog>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

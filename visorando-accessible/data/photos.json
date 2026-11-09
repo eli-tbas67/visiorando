@@ -1,0 +1,83 @@
+{
+ "hero-accueil": {
+  "title": "Lac de Roselend @ Roc du Biolley.jpg",
+  "author": "Rémih",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Lac_de_Roselend_@_Roc_du_Biolley.jpg",
+  "w": 3840,
+  "h": 2880
+ },
+ "hero-resultats": {
+  "title": "Réserve naturelle Gorges de la Loire, Saint-Victor-sur-Loire.jpg",
+  "author": "Ylep",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:R%C3%A9serve_naturelle_Gorges_de_la_Loire,_Saint-Victor-sur-Loire.jpg",
+  "w": 3840,
+  "h": 2880
+ },
+ "grille-1": {
+  "title": "Ile-de-Grangent.JPG",
+  "author": "TwoWings",
+  "license": "CC BY 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Ile-de-Grangent.JPG",
+  "w": 2592,
+  "h": 1952
+ },
+ "grille-2": {
+  "title": "Vue des toits Vieux Lyon.jpg",
+  "author": "Drong~commonswiki",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Vue_des_toits_Vieux_Lyon.jpg",
+  "w": 2608,
+  "h": 1952
+ },
+ "grille-3": {
+  "title": "Lyon - Basilique de Fourvière by night.JPG",
+  "author": "This picture belongs to Xavier Caré. Please credit : Xavier Caré / Wikimedia Com",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Lyon_-_Basilique_de_Fourvi%C3%A8re_by_night.JPG",
+  "w": 3840,
+  "h": 2407
+ },
+ "grille-4": {
+  "title": "Vignes en automne au dessus d'Avenas.jpg",
+  "author": "Alainauzas",
+  "license": "Public domain",
+  "licenseUrl": "",
+  "page": "https://commons.wikimedia.org/wiki/File:Vignes_en_automne_au_dessus_d%27Avenas.jpg",
+  "w": 2832,
+  "h": 2128
+ },
+ "grand-1": {
+  "title": "Lac Lauvitel - Massif des Ecrins.jpg",
+  "author": "Romaric Juvanon",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Lac_Lauvitel_-_Massif_des_Ecrins.jpg",
+  "w": 3840,
+  "h": 2550
+ },
+ "grand-2": {
+  "title": "Lac Cornu et Rochers des Fizs (2018).jpg",
+  "author": "Hilader",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Lac_Cornu_et_Rochers_des_Fizs_(2018).jpg",
+  "w": 3840,
+  "h": 2567
+ },
+ "footer": {
+  "title": "Aiguilles d'arves depuis Albiez.jpg",
+  "author": "Marc Arnaud",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Aiguilles_d%27arves_depuis_Albiez.jpg",
+  "w": 3840,
+  "h": 2880
+ }
+}

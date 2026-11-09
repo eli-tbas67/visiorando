@@ -1,0 +1,14 @@
+{
+  "name": "visorando-accessible",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Refonte accessible de Visorando (projet de cours) : recherche, filtres, carte et fiches de randonnée autour de Lyon.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs --open",
+    "dev": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
