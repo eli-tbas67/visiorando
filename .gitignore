@@ -1,0 +1,27 @@
+# Dépendances
+node_modules/
+
+# Secrets et variables d'environnement
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Vercel
+.vercel/
+
+# Système et éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Journaux et fichiers temporaires
+*.log
+npm-debug.log*
+*.tmp
+__pycache__/
+*.pyc
