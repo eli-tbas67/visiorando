@@ -1,21 +1,26 @@
 # Visorando accessible — refonte de cours
 
+**Site en ligne : https://visiorando.vercel.app/** (fiche d'exemple : https://visiorando.vercel.app/#/rando/ly-tony-garnier)
+
 Prototype codé de la refonte de visorando.com, construit à partir de l'audit RGAA 4.1.2 partiel du 15 octobre 2026.
 
 L'audit a été réalisé sur la fiche visorando.com [« À flanc de colline entre Sainte-Foy-lès-Lyon et Oullins »](https://www.visorando.com/randonnee-a-flanc-de-colline-entre-sainte-foy-les-/). Les défauts relevés viennent du modèle de fiche commun à toutes les randonnées : dans la refonte, leurs corrections sont démontrées sur la fiche « Murs peints de Lyon : Tony Garnier » (`#/rando/ly-tony-garnier`), qui utilise ce même modèle.
+
 Projet de cours, sans lien avec le site officiel.
 
-## Lancer le site
+## Lancer le site en local (facultatif)
+
+Le site en ligne suffit pour le consulter. Cette partie sert seulement à le faire tourner sur un ordinateur, par exemple après avoir téléchargé le dépôt.
 
 **Le plus simple (macOS)** : double-cliquez sur `Lancer le site.command`.
 Le navigateur s'ouvre sur http://localhost:5173. Fermez la fenêtre du Terminal pour arrêter le site.
 
 > Au premier lancement, macOS peut bloquer le fichier. Faites alors clic droit → **Ouvrir** → **Ouvrir**.
 
-**Dans un terminal** :
+**Dans un terminal**, depuis le dossier du projet :
 
 ```bash
-cd ~/Sites/visorando-accessible
+cd visiorando        # le dossier du dépôt cloné ou téléchargé
 npm start          # ou : node server.mjs --open
 ```
 
