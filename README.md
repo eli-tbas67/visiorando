@@ -26,9 +26,9 @@ Une connexion internet est nécessaire pour les fonds de carte et les photos.
 |---|---|---|
 | Accueil | `#/` | Hero photo + recherche (suggestions, rayon, « Autour de moi », filtres), derniers itinéraires, envies, carrousel Pilat, chiffres |
 | Résultats | `#/recherche?lieu=Lyon` | Hero photo + recherche, mosaïque, texte, carte synchronisée avec « Nos meilleures sélections », tri, filtres retirables, « Afficher plus » |
-| Fiche | `#/rando/ly-tony-garnier` | Mosaïque photo + visionneuse, actions (GPX, favoris, lien, impression, itinéraire), étapes en frise, carte du tracé, dénivelé au clavier relié à la carte, montées/descentes, météo en direct (Open-Meteo), infos pratiques, questions fréquentes, randos à proximité |
+| Fiche | `#/rando/ly-tony-garnier` | Structure de la maquette Figma (écran 4) : mosaïque photo + visionneuse, carte d'actions à droite (favoris, GPX, départ sur la carte, impression, partage, « Naviguer ») et encadré Sécurité, description et détails du sentier, onglets « Sur cette page », points de passage, carte du tracé, élévation au clavier reliée à la carte, montée et descente, météo en direct (Open-Meteo), infos pratiques, questions fréquentes, randos à proximité |
 | Favoris | `#/favoris` | Randonnées enregistrées dans le navigateur |
-| Accessibilité | `#/accessibilite` | Les 12 non-conformités de l'audit et leur correction, protocole de test |
+| Accessibilité | `#/accessibilite` | Les 13 non-conformités de l'audit et leur correction, protocole de test |
 
 Le réglage **« Montrer les corrections RGAA »** (dans le menu et le pied de page) affiche le numéro du critère corrigé sur chaque élément. Il sert pour l'oral.
 
@@ -44,11 +44,23 @@ Le fichier `data/randos.json` contient toutes les données. `data/build_data.py`
 
 ## Tests effectués
 
-- axe-core 4.10 (WCAG 2.1 A et AA, bonnes pratiques) : 0 violation sur les 8 pages, en clair et en sombre, à 1280 px et à 320 px.
-- Clavier : lien d'évitement en premier, suggestions au clavier, focus piégé dans les filtres et la visionneuse, Échap ferme et rend le focus, profil parcouru avec les flèches.
-- Pas de défilement horizontal à 320 px.
+Tests manuels (procédure reproductible) :
 
-**Encore à faire** : écoute réelle avec NVDA et VoiceOver, et contrastes vérifiés à la main avec Colour Contrast Analyser.
+1. **Clavier dans le panneau Filtres** (barrière 2 : critères 7.1, 7.3, 12.8). Accueil → `Tab` jusqu'à « Filtres » → `Entrée` → `Tab` une quarantaine de fois → `Échap`. Résultat : le focus arrive sur « Durée maximale », reste dans le panneau, `Échap` ferme et rend le focus à « Filtres ».
+2. **Affichage à 320 px** (critère 10.11), sur les 7 pages. Résultat : **échec sur la page Accessibilité**, texte coupé à droite (page de 356 px). Cause : la grille `.doc` s'élargissait à la taille du tableau. Correction : `grid-template-columns: minmax(0, 1fr)` sur `.doc` et `position: relative` sur `.table-wrap`. **Retest le 12/11/2026 : plus de défilement horizontal sur les 7 pages.**
+3. **Zoom 200 %** (fenêtre de 640 px) : pas de défilement horizontal sur l'accueil, les résultats, une fiche et la page Accessibilité.
+4. **Message de statut** (critère 7.5) : après une recherche « Lyon », la zone `role="status"` contient « 41 randonnées trouvées autour de Lyon… ».
+
+Outil automatique : axe-core 4.10 (WCAG 2.1 A et AA) ne relève aucune violation. Un outil ne détecte qu'une partie des problèmes : ce résultat ne prouve pas la conformité.
+
+**Encore à vérifier** : écoute réelle avec NVDA et VoiceOver, contrastes des textes posés sur photo mesurés à la main (Colour Contrast Analyser), zoom du texte seul à 200 %.
+
+## Usage de l'IA
+
+- Prototype codé avec un agent IA de développement (Claude Code), à partir de la maquette Figma et des barrières de l'audit.
+- Propositions de l'agent vérifiées dans le navigateur (clavier, 320 px) avant d'être gardées.
+- Relecture assistée par IA le 12/11/2026 : elle a repéré le débordement à 320 px de la page Accessibilité, corrigé puis retesté (test 2 ci-dessus).
+- L'IA ne certifie pas l'accessibilité : la refonte n'est déclarée conforme à aucun référentiel.
 
 ## Structure
 

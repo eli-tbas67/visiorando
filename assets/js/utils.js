@@ -146,6 +146,9 @@ Object.assign(ICONS, {
   pdf: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 2.5h7l3.5 3.5v11.5H5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 2.5V6h3.5M7.5 11h5M7.5 14h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   pin: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 18s5.5-5.3 5.5-9.5a5.5 5.5 0 0 0-11 0C4.5 12.7 10 18 10 18Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="8.5" r="2" fill="currentColor"/></svg>',
   external: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M11 3h6v6M17 3l-8 8M14 12v5H3V6h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  bookmark: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path class="fill-on" d="M5 2.5h10v15l-5-3.6-5 3.6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  share: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 12.5V2.5M6.5 6 10 2.5 13.5 6M4 10v7h12v-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  navigate: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M17.5 2.5 2.5 9l6.5 2.5 2.5 6.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
   busBig: '<svg viewBox="0 0 28 28" aria-hidden="true" focusable="false"><rect x="5" y="3" width="18" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 13h18M9 22v3M19 22v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9.5" cy="17.5" r="1.4" fill="currentColor"/><circle cx="18.5" cy="17.5" r="1.4" fill="currentColor"/></svg>',
 });
 

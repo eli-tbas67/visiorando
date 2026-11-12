@@ -333,8 +333,8 @@ function viewHome() {
         </div>
         <dl class="stats">
           <div><dt>itinéraires avec tracé, profil et photos</dt><dd>${DATA.randos.length}</dd></div>
-          <div><dt>non-conformités RGAA corrigées</dt><dd>12</dd></div>
-          <div><dt>erreur axe-core sur les pages testées</dt><dd>0</dd></div>
+          <div><dt>non-conformités RGAA corrigées</dt><dd>13</dd></div>
+          <div><dt>violation détectée par l'outil axe-core (un outil ne prouve pas la conformité)</dt><dd>0</dd></div>
           <div><dt>de large minimum, sans défilement horizontal</dt><dd>320 px</dd></div>
         </dl>
       </section>
@@ -540,7 +540,9 @@ function viewFiche(id) {
     const items = DATA.randos.filter((x) => x.tags.includes(k) && x.photos.length && x.id !== r.id);
     return { k, t, n: items.length, ph: items[(r.ref.charCodeAt(3) + k.length) % Math.max(1, items.length)]?.photos[0] };
   });
-  const sections = [["sec-etapes", "Étapes"], ["sec-carte", "Carte"], ["sec-profil", "Dénivelé"], ["sec-montees", "Montées et descentes"], ["sec-meteo", "Météo"], ["sec-infos", "Infos pratiques"], ["sec-faq", "Questions"]];
+  const hasInfos = practical.length > 0 || !!(r.advice && r.id.startsWith("gt-"));
+  const sections = [["sec-etapes", "Points de passage"], ["sec-carte", "Carte"], ["sec-profil", "Élévation"], ["sec-montees", "Montée et descente"], ["sec-meteo", "Météo"], ["sec-infos", "Infos pratiques"], ["sec-faq", "Questions"]].filter(([sid]) => sid !== "sec-infos" || hasInfos);
+  const leadTxt = r.ambiance || r.teaser ? lead : "";
   const updated = r.source.updated ? new Date(r.source.updated).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
 
   return {
@@ -571,8 +573,19 @@ function viewFiche(id) {
               <div><dt>${ICONS.down}<span class="vh">Dénivelé négatif</span></dt><dd>${fr0(r.descent)} m</dd></div>
             </dl>
             <p class="muted">${esc(r.route)} · ${esc(r.commune)} (${esc(r.dept.code)}) · Randonnée n° <span class="tabular">${esc(r.ref)}</span></p>
-            ${lead ? `<p class="lead">${esc(lead)}</p>` : ""}
-            ${updated ? `<p class="updated">Mis à jour le ${updated}</p>` : ""}
+          </div>
+
+          <div class="fiche-desc prose">
+            ${leadTxt ? `<p class="lead">${esc(leadTxt)}</p>` : ""}
+            ${r.description ? `<h2 class="h-sub">À quoi s'attendre sur ce sentier</h2>${r.description}` : ""}
+            <h2 class="h-sub">Détails du sentier</h2>
+            <ul>
+              <li>Distance : ${fr1(r.km)} km</li>
+              <li>Dénivelé positif : ${fr0(r.ascent)} mètres</li>
+              <li>Difficulté : ${esc(LEVELS[r.level].toLowerCase())}</li>
+              <li>Temps estimé : ${dur(r.durationMin)}</li>
+            </ul>
+            ${updated ? `<p class="updated">Dernière mise à jour : ${updated}</p>` : ""}
             <div class="callout">${ICONS.busBig}<p>${hasTransport ? `<b>Accessible sans voiture</b> ${esc((document.createRange().createContextualFragment(r.transport).textContent || "").slice(0, 160))}` : `<b>Départ : ${esc(r.departure)}</b>Pensez au covoiturage pour rejoindre le point de départ.`}</p></div>
           </div>
 
@@ -581,7 +594,7 @@ function viewFiche(id) {
           </nav>
 
           <section id="sec-etapes" aria-labelledby="h-etapes" tabindex="-1">
-            <h2 id="h-etapes">Étapes</h2>
+            <h2 id="h-etapes">Points de passage</h2>
             <ol class="timeline">${wps.map((w) => `
               <li>
                 <span class="tl-km">${fr1(w.km)} km</span>
@@ -597,17 +610,19 @@ function viewFiche(id) {
 
           <section id="sec-carte" aria-labelledby="h-map" tabindex="-1">
             <h2 id="h-map">Carte du parcours</h2>
-            <div class="map fiche-map" id="f-map"></div>
-            <p class="map-note" style="margin-top:8px">${esc(r.source.trace)}. La carte se déplace aussi au clavier avec les flèches quand elle a le focus.</p>
+            <div class="card-box map-box">
+              <div class="map fiche-map" id="f-map"></div>
+              <p class="map-note">${esc(r.source.trace)}. La carte se déplace aussi au clavier avec les flèches quand elle a le focus.</p>
+            </div>
           </section>
 
           <section id="sec-profil" aria-labelledby="h-profil" tabindex="-1">
-            <h2 id="h-profil">Dénivelé</h2>
+            <h2 id="h-profil">Élévation</h2>
             <div class="card-box" id="f-profile"></div>
           </section>
 
           <section id="sec-montees" aria-labelledby="h-montees" tabindex="-1">
-            <h2 id="h-montees">Montées et descentes</h2>
+            <h2 id="h-montees">Montée et descente</h2>
             <div class="card-box" id="climbs">${climbsHTML(r)}</div>
           </section>
 
@@ -616,32 +631,31 @@ function viewFiche(id) {
             <div class="weather" id="weather" aria-live="polite"><p>Chargement des prévisions…</p></div>
           </section>
 
-          <section id="sec-infos" aria-labelledby="h-infos" tabindex="-1">
+          ${hasInfos ? `<section id="sec-infos" aria-labelledby="h-infos" tabindex="-1">
             <h2 id="h-infos">Infos pratiques</h2>
-            <div class="prose">
-              ${r.description ? `<h3 style="font-size:1.2rem">Description de l'itinéraire</h3>${r.description}` : ""}
+            <div class="card-box prose">
               ${practical.length ? `<dl class="practical">${practical.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>` : ""}
               ${r.advice && r.id.startsWith("gt-") ? `<details class="data"><summary>Lire les recommandations du gestionnaire</summary><div class="prose" style="margin-top:10px">${r.advice}</div></details>` : ""}
             </div>
-          </section>
+          </section>` : ""}
         </article>
 
         <aside class="fiche-side" aria-label="Actions et sécurité">
-          <button type="button" class="btn btn-primary btn-block" id="f-gpx">${ICONS.download} Télécharger le tracé GPX</button>
-          <button type="button" class="btn btn-sand btn-block" id="f-fav" aria-pressed="${fav}">${ICONS.heart} <span>${fav ? "Dans mes favoris" : "Ajouter aux favoris"}</span></button>
-          <p class="status-msg" id="f-status" role="status"></p>
-          <div class="side-card">
+          <div class="side-card actions-card">
             <ul>
-              <li><button type="button" class="side-action" id="f-copy">${ICONS.link} Copier le lien</button></li>
-              <li><button type="button" class="side-action" id="f-print">${ICONS.print} Imprimer la fiche</button></li>
+              <li><button type="button" class="side-action" id="f-fav" aria-pressed="${fav}">${ICONS.bookmark} Enregistrer dans mes favoris</button></li>
+              <li><button type="button" class="side-action" id="f-gpx">${ICONS.download} Télécharger le tracé GPX</button></li>
               <li><button type="button" class="side-action" data-step="0">${ICONS.pin} Voir le départ sur la carte</button></li>
-              <li><a class="side-action" href="https://www.openstreetmap.org/directions?to=${r.start[0]}%2C${r.start[1]}" target="_blank" rel="noopener">${ICONS.external} Itinéraire jusqu'au départ<span class="vh"> (OpenStreetMap, nouvelle fenêtre)</span></a></li>
+              <li><button type="button" class="side-action" id="f-print">${ICONS.print} Imprimer la fiche</button></li>
+              <li><button type="button" class="side-action" id="f-copy">${ICONS.share} Partager : copier le lien</button></li>
               ${r.source.pdf ? `<li><a class="side-action" href="${esc(r.source.pdf)}" target="_blank" rel="noopener">${ICONS.pdf} Fiche PDF officielle<span class="vh"> (nouvelle fenêtre)</span></a></li>` : ""}
             </ul>
+            <a class="btn btn-primary btn-block" href="https://www.openstreetmap.org/directions?to=${r.start[0]}%2C${r.start[1]}" target="_blank" rel="noopener">${ICONS.navigate} Naviguer jusqu'au départ<span class="vh"> (OpenStreetMap, nouvelle fenêtre)</span></a>
+            <p class="status-msg" id="f-status" role="status"></p>
           </div>
           <section class="safety" aria-labelledby="h-secu">
             <h2 id="h-secu">${ICONS.warn} Sécurité</h2>
-            <span class="fix" aria-hidden="true">3.2 texte 15,6:1 (avant 3,23:1)</span>
+            <span class="fix" aria-hidden="true">3.2 texte 14,9:1 (avant 3,23:1)</span>
             <p>Soyez toujours prudent et prévoyant. Vous restez responsable de votre sécurité sur ce parcours.</p>
             <ul>
               <li>Vérifiez la météo avant de partir${r.maxEl > 1000 ? " : le Pilat est souvent venté et enneigé l'hiver" : ""}.</li>
@@ -674,11 +688,19 @@ function viewFiche(id) {
       wireCarousels(main);
       wireTabs($("#climbs"));
       loadWeather($("#weather"), r);
+      const navLinks = $$(".page-nav a");
+      const setCurrent = (id) => navLinks.forEach((a) => { if (a.dataset.jump === id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+      setCurrent(sections[0][0]);
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver((ents) => ents.forEach((en) => { if (en.isIntersecting) setCurrent(en.target.id); }), { rootMargin: "-15% 0px -75% 0px" });
+        sections.forEach(([sid]) => { const el = document.getElementById(sid); if (el) io.observe(el); });
+      }
       $$("[data-jump]").forEach((a) => a.addEventListener("click", (e) => {
         e.preventDefault();
         const t = document.getElementById(a.dataset.jump);
         t.scrollIntoView({ block: "start" });
         t.focus({ preventScroll: true });
+        setCurrent(a.dataset.jump);
       }));
       const map = createMap($("#f-map"), { label: `Carte du parcours ${r.name}`, center: r.start, zoom: 13 });
       let pos = null;
@@ -715,7 +737,6 @@ function viewFiche(id) {
         const now = store.toggleFav(r.id);
         const b = e.currentTarget;
         b.setAttribute("aria-pressed", String(now));
-        b.querySelector("span").textContent = now ? "Dans mes favoris" : "Ajouter aux favoris";
         say(now ? "Randonnée ajoutée à vos favoris." : "Randonnée retirée de vos favoris.");
       });
       $("#f-gpx").addEventListener("click", () => {
@@ -775,12 +796,13 @@ function viewA11y() {
     ["7.3", "Impossible d'entrer dans le panneau Filtres ou de le fermer au clavier.", "À l'ouverture, le focus va sur le premier curseur ; Échap ferme ; tous les contrôles sont natifs.", "#/"],
     ["12.8", "Tab envoie sur un bouton caché sous le panneau.", "Le reste de la page devient inerte et le focus boucle dans le panneau ; à la fermeture, il revient sur « Filtres ».", "#/"],
     ["9.1", "« Trouver une randonnée » est du texte en gras, le premier titre est vide, la page résultats n'a pas de h1.", "Chaque page a un seul h1, puis des h2 et h3 dans l'ordre.", "#/recherche?lieu=Lyon"],
-    ["3.2", "Avertissement de sécurité gris #8F8F8F (3,23:1), titres blancs sur vert (2,8:1), fil d'Ariane (2,1:1).", "Texte principal à 15,6:1, gris secondaire à 7,4:1, blanc sur les cartes vertes à 6,1:1, voile sombre sous les textes posés sur photo, encadré Sécurité dédié.", "#/rando/ly-tony-garnier"],
+    ["3.2", "Avertissement de sécurité gris #8F8F8F (3,23:1), titres blancs sur vert (2,8:1), fil d'Ariane (2,1:1).", "Texte principal à 14,7:1, gris secondaire à 7,3:1, blanc sur les cartes vertes à 6,1:1, encadré Sécurité dédié (14,9:1), voile sombre sous les textes posés sur photo.", "#/rando/ly-tony-garnier"],
     ["7.5", "Le nombre de résultats n'est pas annoncé après une recherche.", "Une zone de statut annonce « N randonnées trouvées autour de… » après chaque recherche ou changement de filtre.", "#/recherche?lieu=Lyon"],
     ["8.6", "Le titre d'onglet reste « Carte de recherche… », sans le lieu.", "Le titre d'onglet change à chaque page : lieu et nombre de résultats, ou nom de la randonnée.", "#/recherche?lieu=Lyon"],
     ["12.6", "Pas de zone de contenu principale sur la page résultats.", "Repères header, nav, main, aside et footer sur toutes les pages.", "#/recherche?lieu=Lyon"],
     ["12.7", "Pas de lien d'évitement.", "Lien « Aller au contenu », premier élément atteint avec Tab.", "#/"],
     ["6.2", "Le bouton « Ouvrir dans l'app » n'a aucun intitulé.", "Tous les boutons ont un texte visible ou un nom accessible explicite (étoile favori, zoom, fond de carte, flèches des carrousels).", "#/rando/ly-tony-garnier"],
+    ["8.2", "Code HTML invalide selon le validateur W3C : balise <meta http-equiv=\"content-language\"> obsolète.", "Code validé avec le validateur W3C (Nu Html Checker) sur les pages rendues : 0 erreur. La langue est déclarée par lang=\"fr\" uniquement.", "#/"],
     ["1.2", "Images décoratives sans alternative vide (randonneur animé, herbe, pictos).", "Photos d'ambiance et vignettes avec alt vide, pictogrammes masqués ; les photos qui portent une information ont un texte alternatif.", "#/"],
   ];
   return {
@@ -789,7 +811,7 @@ function viewA11y() {
     <div class="wrap">
       <div class="page-head">
         <h1 id="h-page" tabindex="-1">Accessibilité de la refonte</h1>
-        <p class="lead" style="max-width:62ch">Cette maquette corrige les 12 non-conformités relevées lors de l'audit RGAA 4.1.2 partiel de visorando.com du 15 octobre 2026. Elle n'est pas encore déclarée conforme : il reste à la tester avec un lecteur d'écran.</p>
+        <p class="lead" style="max-width:62ch">Cette maquette corrige les 13 non-conformités relevées lors de l'audit RGAA 4.1.2 partiel de visorando.com (audit d'Eliott et Lola, octobre-novembre 2026). Elle n'est pas encore déclarée conforme : il reste à la tester avec un lecteur d'écran.</p>
       </div>
       <div class="doc">
         <section aria-labelledby="h-corr">
@@ -812,6 +834,25 @@ function viewA11y() {
             <li>Appuyez sur <kbd>Tab</kbd> plusieurs fois : le focus reste dans le panneau. <kbd>Échap</kbd> le ferme et revient sur « Filtres ».</li>
             <li>Sur une fiche, parcourez le dénivelé avec <kbd>→</kbd> : le point rouge se déplace aussi sur la carte.</li>
           </ol>
+        </section>
+        <section aria-labelledby="h-tests" class="prose">
+          <h2 id="h-tests">Tests manuels, correction et retest</h2>
+          <ol>
+            <li><strong>Clavier dans le panneau Filtres</strong> (barrière 2 de l'audit : critères 7.1, 7.3, 12.8). Procédure : sur l'accueil, <kbd>Tab</kbd> jusqu'à « Filtres », <kbd>Entrée</kbd>, puis <kbd>Tab</kbd> une quarantaine de fois, puis <kbd>Échap</kbd>. Résultat : le focus arrive sur « Durée maximale », reste dans le panneau, et <kbd>Échap</kbd> ferme le panneau en rendant le focus à « Filtres ».</li>
+            <li><strong>Affichage à 320 px de large</strong> (critère 10.11). Procédure : fenêtre de 320 px, les 7 pages du site, recherche d'un défilement horizontal ou d'un texte coupé. Résultat : échec sur cette page Accessibilité, le texte de « Corrections critère par critère » était coupé à droite (page de 356 px de large). Cause : la grille CSS de la page s'élargissait à la taille du tableau. Correction : colonne de grille limitée à la largeur de l'écran (<code>minmax(0, 1fr)</code>) et tableau contenu dans sa propre zone de défilement. Retest le 12/11/2026 : plus aucun défilement horizontal sur les 7 pages ; seul le tableau défile dans sa zone, atteignable au clavier.</li>
+            <li><strong>Zoom à 200 %</strong> (fenêtre équivalente de 640 px). Résultat : pas de défilement horizontal ni de contenu masqué sur l'accueil, les résultats, une fiche et cette page. Le zoom du texte seul reste à tester.</li>
+            <li><strong>Message de statut après une recherche</strong> (critère 7.5). Procédure : rechercher « Lyon ». Résultat : la zone de statut contient « 41 randonnées trouvées autour de Lyon, dans un rayon de 50 kilomètres. » La lecture de ce message par un lecteur d'écran n'a pas encore été vérifiée.</li>
+          </ol>
+          <p>Outil automatique : axe-core ne relève aucune violation sur les pages testées. Un outil ne détecte qu'une partie des problèmes ; ce résultat complète les tests manuels sans prouver la conformité.</p>
+        </section>
+        <section aria-labelledby="h-ia" class="prose">
+          <h2 id="h-ia">Usage de l'IA</h2>
+          <ul>
+            <li>Le prototype a été codé avec un agent IA de développement (Claude Code), à partir de la maquette Figma et des barrières relevées dans l'audit.</li>
+            <li>Les propositions de l'agent ont été ouvertes et vérifiées dans le navigateur, au clavier et à 320 px, avant d'être gardées.</li>
+            <li>Une relecture assistée par IA, le 12/11/2026, a repéré le débordement à 320 px de cette page ; la correction a été confirmée par un nouveau test (voir ci-dessus).</li>
+            <li>L'IA ne certifie pas l'accessibilité : cette refonte n'est déclarée conforme à aucun référentiel.</li>
+          </ul>
         </section>
         <section aria-labelledby="h-reste" class="prose">
           <h2 id="h-reste">Ce qui reste à vérifier</h2>
@@ -877,6 +918,7 @@ setAnnot(!!store.getPref("annot", false));
 $("#signup-btn").addEventListener("click", (e) => {
   const opener = e.currentTarget;
   const dlg = $("#signup");
+  dlg.setAttribute("aria-labelledby", "h-signup");
   dlg.innerHTML = `
     <form class="dlg" novalidate>
       <div class="dlg-head"><h2 id="h-signup">Créer un compte</h2><button type="button" class="close-btn" data-close>${ICONS.close} Fermer</button></div>
