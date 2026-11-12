@@ -3,13 +3,11 @@
 Site en ligne : https://visiorando.vercel.app/
 Fiche d'exemple : https://visiorando.vercel.app/#/rando/ly-tony-garnier
 
-C'est notre refonte de visorando.com pour le module Accessibilité numérique (B3). On est partis de notre audit RGAA du 15 octobre 2026, puis on a corrigé les problèmes trouvés dans une maquette Figma et dans ce prototype codé.
+C'est notre refonte de visorando.com pour le module Accessibilité numérique. On est partis de notre audit RGAA du 15 octobre 2026, puis on a corrigé les problèmes trouvés dans une maquette Figma et dans ce prototype codé.
 
 On a audité la fiche « À flanc de colline entre Sainte-Foy-lès-Lyon et Oullins » sur visorando.com : https://www.visorando.com/randonnee-a-flanc-de-colline-entre-sainte-foy-les-/
 
 Toutes les fiches de Visorando utilisent le même modèle de page, donc les problèmes relevés se retrouvent partout. Dans notre prototype, on montre les corrections sur la fiche « Murs peints de Lyon : Tony Garnier ».
-
-C'est un projet de cours, il n'a aucun lien avec le vrai site.
 
 ## Le parcours qu'on a choisi
 
@@ -52,7 +50,7 @@ On a testé à la main, avec une procédure qu'on peut refaire :
 
 On a aussi passé l'outil automatique axe-core : il ne trouve aucune erreur. Mais un outil ne voit qu'une partie des problèmes, donc ça ne prouve pas que le site est conforme.
 
-**Ce qu'on n'a pas encore vérifié** : l'écoute avec NVDA sous Windows (on n'avait pas de PC), les contrastes des textes posés sur les photos, et le zoom du texte seul à 200 %.
+**Ce qu'on n'a pas encore vérifié** : l'écoute avec NVDA sous Windows (on n'avait pas de PC windows), les contrastes des textes posés sur les photos, et le zoom du texte seul à 200 %.
 
 ## Usage de l'IA
 
@@ -60,7 +58,7 @@ On a aussi passé l'outil automatique axe-core : il ne trouve aucune erreur. Mai
 - On a ouvert et testé chaque proposition dans le navigateur (au clavier, à 320 px) avant de la garder, et on a repris l'agent quand il se trompait.
 - Une relecture avec l'IA le 12/11/2026 a repéré le débordement à 320 px de la page Accessibilité. On l'a corrigé puis retesté (test 2).
 - Le même jour, l'IA nous a aidés à rapprocher la fiche de la maquette Figma (écran 4). Les photos des points de passage sont choisies automatiquement sur Wikimedia Commons, à moins de 150 m de chaque point, puis triées.
-- Ce README a été rédigé avec l'aide de l'IA, puis relu par nous.
+- Nous nous sommes aussi aidé de l'IA afin de rédiger ce README afin de poser le contexte et expliquer notre projet
 - L'IA ne certifie pas l'accessibilité : notre refonte n'est déclarée conforme à aucun référentiel.
 
 ## Données utilisées
@@ -73,27 +71,3 @@ On a aussi passé l'outil automatique axe-core : il ne trouve aucune erreur. Mai
 - **Polices** : Atkinson Hyperlegible (Braille Institute) et Bricolage Grotesque, sous licence OFL.
 
 Sur la fiche, « Éditer l'itinéraire », « Déplacer le point de départ » et les deux « Signaler » demandent un compte Visorando. Dans la maquette, ils affichent juste un message qui l'explique.
-
-## Lancer le site sur son ordinateur (facultatif)
-
-Le site en ligne suffit. Pour le lancer en local, après avoir téléchargé le dépôt, ouvrir un terminal dans le dossier du projet et taper `npm start` (ou `node server.mjs --open`).
-
-Le site s'ouvre sur http://localhost:5173. Il n'y a rien à installer : Node 18 suffit. Il faut une connexion internet pour les cartes et les photos.
-
-## Organisation des fichiers
-
-```
-index.html               page unique (navigation par #)
-assets/css/app.css       styles
-assets/js/app.js         pages du site
-assets/js/filters.js     panneau Filtres
-assets/js/combobox.js    champ de recherche avec suggestions
-assets/js/map.js         cartes
-assets/js/profile.js     profil d'altitude et tableau
-assets/js/gallery.js     photos et visionneuse
-assets/js/store.js       favoris
-data/randos.json         les 44 randonnées
-data/voies.json          types de voies et surfaces
-data/points-photos.json  photos des points de passage
-server.mjs               petit serveur local
-```
