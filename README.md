@@ -76,12 +76,9 @@ Sur la fiche, « Éditer l'itinéraire », « Déplacer le point de départ » e
 
 ## Lancer le site sur son ordinateur (facultatif)
 
-Le site en ligne suffit. Pour le lancer en local, après avoir téléchargé le dépôt :
+Le site en ligne suffit. Pour le lancer en local, après avoir téléchargé le dépôt, ouvrir un terminal dans le dossier du projet et taper `npm start` (ou `node server.mjs --open`).
 
-- sur Mac, double-cliquer sur `Lancer le site.command` (au premier lancement : clic droit, Ouvrir, Ouvrir) ;
-- ou dans un terminal, depuis le dossier du projet : `npm start` (ou `node server.mjs --open`).
-
-Le site s'ouvre sur http://localhost:5173. Il n'y a rien à installer : Node 18 suffit (sinon le lanceur utilise Python). Il faut une connexion internet pour les cartes et les photos.
+Le site s'ouvre sur http://localhost:5173. Il n'y a rien à installer : Node 18 suffit. Il faut une connexion internet pour les cartes et les photos.
 
 ## Organisation des fichiers
 
