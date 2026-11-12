@@ -878,7 +878,7 @@ function viewA11y() {
     <div class="wrap">
       <div class="page-head">
         <h1 id="h-page" tabindex="-1">Accessibilité de la refonte</h1>
-        <p class="lead" style="max-width:62ch">Cette maquette corrige les 13 non-conformités relevées lors de l'audit RGAA 4.1.2 partiel de visorando.com (audit d'Eliott et Lola, octobre-novembre 2026). Elle n'est pas encore déclarée conforme : il reste à la tester avec un lecteur d'écran.</p>
+        <p class="lead" style="max-width:62ch">Cette maquette corrige les 13 non-conformités relevées lors de l'audit RGAA 4.1.2 partiel de visorando.com (audit d'Eliott et Lola, octobre-novembre 2026). Elle n'est déclarée conforme à aucun référentiel : la fiche a été écoutée avec VoiceOver, NVDA reste à tester.</p>
         <p style="max-width:62ch">L'audit a été réalisé sur la fiche <a href="https://www.visorando.com/randonnee-a-flanc-de-colline-entre-sainte-foy-les-/" target="_blank" rel="noopener">« À flanc de colline entre Sainte-Foy-lès-Lyon et Oullins »<span class="vh"> (visorando.com, nouvelle fenêtre)</span></a>. Les défauts relevés viennent du modèle de fiche commun à toutes les randonnées : dans la refonte, leurs corrections sont démontrées sur la fiche <a href="#/rando/ly-tony-garnier">« Murs peints de Lyon : Tony Garnier »</a>, qui utilise ce même modèle.</p>
       </div>
       <div class="doc">
@@ -910,6 +910,7 @@ function viewA11y() {
             <li><strong>Affichage à 320 px de large</strong> (critère 10.11). Procédure : fenêtre de 320 px, les 7 pages du site, recherche d'un défilement horizontal ou d'un texte coupé. Résultat : échec sur cette page Accessibilité, le texte de « Corrections critère par critère » était coupé à droite (page de 356 px de large). Cause : la grille CSS de la page s'élargissait à la taille du tableau. Correction : colonne de grille limitée à la largeur de l'écran (<code>minmax(0, 1fr)</code>) et tableau contenu dans sa propre zone de défilement. Retest le 12/11/2026 : plus aucun défilement horizontal sur les 7 pages ; seul le tableau défile dans sa zone, atteignable au clavier.</li>
             <li><strong>Zoom à 200 %</strong> (fenêtre équivalente de 640 px). Résultat : pas de défilement horizontal ni de contenu masqué sur l'accueil, les résultats, une fiche et cette page. Le zoom du texte seul reste à tester.</li>
             <li><strong>Message de statut après une recherche</strong> (critère 7.5). Procédure : rechercher « Lyon ». Résultat : la zone de statut contient « 41 randonnées trouvées autour de Lyon, dans un rayon de 50 kilomètres. » La lecture de ce message par un lecteur d'écran n'a pas encore été vérifiée.</li>
+            <li><strong>Lecteur d'écran sur la fiche</strong> (critères 1.2, 6.2, 8.6). Procédure : VoiceOver avec Chrome (macOS), le 12/11/2026, sur la fiche « Murs peints de Lyon : Tony Garnier » : Tab sur les photos, les actions, la carte et le curseur du profil. Résultat : le titre de la page est lu ; une photo est annoncée « Agrandir la photo 1 sur 3 du point 2 : Lyon (France/Rhône) - Musée Tony Garnier, accès, bouton » ; « Enregistrer » et « Agrandir la carte » sont annoncés comme boutons de basculement ; le curseur annonce « 0,7 kilomètres, altitude 174 mètres, pente 1 % ». Problème trouvé : le contour de focus des onglets « Sur cette page » était coupé par la liste qui défile (critère 10.7). Correction : contour dessiné à l'intérieur de l'onglet. Retest au clavier : contour entièrement visible.</li>
           </ol>
           <p>Outil automatique : axe-core ne relève aucune violation sur les pages testées. Un outil ne détecte qu'une partie des problèmes ; ce résultat complète les tests manuels sans prouver la conformité.</p>
         </section>
@@ -925,7 +926,7 @@ function viewA11y() {
         <section aria-labelledby="h-reste" class="prose">
           <h2 id="h-reste">Ce qui reste à vérifier</h2>
           <ul>
-            <li>Écoute réelle avec NVDA (Windows) et VoiceOver (macOS, iOS).</li>
+            <li>Écoute avec NVDA (Windows) et VoiceOver sur iOS ; avec VoiceOver sur macOS, seule la fiche a été écoutée (accueil, résultats et panneau Filtres restent à écouter).</li>
             <li>Contrastes des textes posés sur les photos, mesurés à la main avec Colour Contrast Analyser.</li>
             <li>Zoom du texte seul à 200 %.</li>
             <li>Les fonds de carte IGN et OpenStreetMap sont des images : leurs libellés ne sont pas lus. La liste des résultats et le tableau des altitudes servent d'alternative.</li>
