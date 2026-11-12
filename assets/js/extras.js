@@ -97,7 +97,7 @@ const wIcon = (k) => `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="fal
 
 export async function loadWeather(host, r) {
   const [lat, lon] = r.start;
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=Europe%2FParis&forecast_days=4`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=Europe%2FParis&forecast_days=1`;
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 8000);
@@ -105,19 +105,21 @@ export async function loadWeather(host, r) {
     clearTimeout(t);
     if (!res.ok) throw new Error(res.status);
     const j = await res.json();
-    const c = j.current, d = j.daily;
-    const [, label, ic] = wmo(c.weather_code);
+    const d = j.daily;
     const day = (i) => new Date(d.time[i] + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    const [, l0, ic0] = wmo(d.weather_code[0]);
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
     host.innerHTML = `
-      <div class="weather-now">
-        ${wIcon(ic)}
-        <div><b>Maintenant au départ</b><br>${label}, vent ${fr0(c.wind_speed_10m)} km/h</div>
-        <p class="t">${fr0(c.temperature_2m)} °C</p>
+      <div class="weather-today">
+        ${wIcon(ic0)}
+        <p class="w-day"><span class="vh">Aujourd'hui, </span>${cap(day(0))}<span class="w-label">${l0}</span></p>
+        <dl class="w-vals">
+          <div><dt><span class="tri up" aria-hidden="true">▲</span><span class="vh">Maximale</span></dt><dd class="tabular">${fr0(d.temperature_2m_max[0])} °C</dd></div>
+          <div><dt><span class="tri" aria-hidden="true">▼</span><span class="vh">Minimale</span></dt><dd class="tabular">${fr0(d.temperature_2m_min[0])} °C</dd></div>
+          <div><dt><span class="drop" aria-hidden="true"></span><span class="vh">Risque de pluie</span></dt><dd class="tabular">${d.precipitation_probability_max[0] ?? 0} %</dd></div>
+        </dl>
       </div>
-      <ul class="weather-days" aria-label="Prévisions des prochains jours">
-        ${[1, 2, 3].map((i) => { const [, l] = wmo(d.weather_code[i]); return `<li><b>${day(i)}</b><span>${l}</span><span class="tabular">${fr0(d.temperature_2m_min[i])} à ${fr0(d.temperature_2m_max[i])} °C</span><span class="tabular">Pluie : ${d.precipitation_probability_max[i] ?? 0} %</span></li>`; }).join("")}
-      </ul>
-      <p class="src">Prévisions au point de départ (${esc(r.departure)}) par <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo<span class="vh"> (nouvelle fenêtre)</span></a>. En montagne, le temps change vite : vérifiez aussi Météo-France le jour J.</p>`;
+      <p class="src">Prévisions au point de départ (${esc(r.departure)}) par <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo<span class="vh"> (nouvelle fenêtre)</span></a>. Le temps change vite : vérifiez aussi Météo-France le jour J.</p>`;
   } catch {
     host.innerHTML = `<p><b>Météo indisponible.</b> Vérifiez votre connexion, ou consultez les prévisions de Météo-France avant de partir.</p>`;
   }

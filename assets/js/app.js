@@ -6,8 +6,8 @@ import { createMap, resultMarker, startIcon, stepIcon, posIcon, hasLeaflet } fro
 import { combobox, makeSource } from "./combobox.js";
 import { DEFAULTS, clone, fromParams, toParams, matches, active, removeOne, summary, openFilters } from "./filters.js";
 import { renderProfile, cumulative } from "./profile.js";
-import { galleryHTML, wireGallery, credit } from "./gallery.js";
-import { climbsHTML, wireTabs, loadWeather, faq } from "./extras.js";
+import { galleryHTML, wireGallery, credit, openLightbox } from "./gallery.js";
+import { climbsHTML, wireTabs, loadWeather } from "./extras.js";
 
 const SITE = "Visorando (refonte)";
 const PAGE = 12;
@@ -15,6 +15,22 @@ const LYON = { name: "Lyon", lat: 45.7578, lon: 4.832 };
 let DATA = null;
 let BYID = new Map();
 let PHOTOS = {};
+let VOIES = {};
+let PT_PHOTOS = {};
+const VOIE_COLORS = { "Sentier": "#8C6A3F", "Chemin": "#C7A878", "Escaliers": "#5B3F1E", "Rue piétonne": "#6E7E58", "Rue": "#9AA1AA", "Route": "#4F5560", "Piste cyclable": "#1F5FA8", "Autre": "#C9CDD2", "Inconnu": "#E2E4E7" };
+const SURF_COLORS = { "Non pavé": "#8C6A3F", "Gravier": "#C7A878", "Pavé": "#9AA1AA", "Asphalte": "#4F5560", "Inconnu": "#1B2111" };
+const text = (h) => { const d = document.createElement("div"); d.innerHTML = h || ""; return d.textContent.trim(); };
+// Wikimedia ne sert que des largeurs de vignette standard (500, 960, 1280…).
+const wmWidth = (u, w) => (u || "").split("?")[0].replace(/\/\d+px-/, `/${w}px-`);
+const dist = (m) => (m < 100 ? "moins de 100 m" : m < 1000 ? `${fr0(Math.round(m / 10) * 10)} m` : `${fr1(m / 1000)} km`);
+function voiesHTML(title, rows, colors) {
+  const total = rows.reduce((s, [, m]) => s + m, 0) || 1;
+  return `<div class="voies-block">
+    <h3>${title}</h3>
+    <div class="voies-bar" aria-hidden="true">${rows.map(([k, m]) => `<span style="flex:${m};background:${colors[k] || "#C9CDD2"}"></span>`).join("")}</div>
+    <ul>${rows.map(([k, m]) => `<li><span class="sw" style="background:${colors[k] || "#C9CDD2"}" aria-hidden="true"></span><span>${esc(k)}</span><span class="tabular">${dist(m)} <span class="muted">(${fr0((m / total) * 100)} %)</span></span></li>`).join("")}</ul>
+  </div>`;
+}
 let maps = [];
 let homeFilters = clone(DEFAULTS);
 let pendingFocus = null;
@@ -24,11 +40,13 @@ installImageFallback();
 
 /* =================== Données =================== */
 async function load() {
-  const [res, ph] = await Promise.all([fetch("data/randos.json"), fetch("data/photos.json").catch(() => null)]);
+  const [res, ph, vo, pp] = await Promise.all(["data/randos.json", "data/photos.json", "data/voies.json", "data/points-photos.json"].map((u, i) => (i ? fetch(u).catch(() => null) : fetch(u))));
   if (!res.ok) throw new Error("HTTP " + res.status);
   DATA = await res.json();
   BYID = new Map(DATA.randos.map((r) => [r.id, r]));
   try { PHOTOS = ph && ph.ok ? await ph.json() : {}; } catch { PHOTOS = {}; }
+  try { VOIES = vo && vo.ok ? await vo.json() : {}; } catch { VOIES = {}; }
+  try { PT_PHOTOS = pp && pp.ok ? await pp.json() : {}; } catch { PT_PHOTOS = {}; }
 }
 const PLACE = (name) => DATA.places.find((p) => norm(p.name) === norm(name));
 
@@ -527,21 +545,27 @@ function viewFiche(id) {
   const r = BYID.get(id);
   if (!r) return view404();
   const fav = store.isFav(r.id);
-  const near = DATA.randos.filter((x) => x.id !== r.id).map((x) => ({ x, d: km(r.start, x.start) })).sort((a, b) => a.d - b.d).slice(0, 8);
   const deptQuery = resultsHash({ name: r.commune, lat: r.start[0], lon: r.start[1] }, "50", clone(DEFAULTS));
   const commQuery = resultsHash({ name: r.commune, lat: r.start[0], lon: r.start[1] }, "10", clone(DEFAULTS));
   const wps = waypoints(r);
   const tmp = document.createElement("div");
   tmp.innerHTML = r.ambiance || r.teaser || r.description || "";
   const lead = tmp.textContent.trim();
-  const hasTransport = r.tags.includes("transports") && !!r.transport;
   const practical = [["Accès", r.access], ["Stationnement", r.parking], ["Transports en commun", r.transport]].filter(([, v]) => v);
-  const collections = [["famille", "Balades en famille"], ["eau", "Au fil de l'eau"], ["vue", "Grands panoramas"], ["patrimoine", "Sur les traces du patrimoine"]].map(([k, t]) => {
-    const items = DATA.randos.filter((x) => x.tags.includes(k) && x.photos.length && x.id !== r.id);
-    return { k, t, n: items.length, ph: items[(r.ref.charCodeAt(3) + k.length) % Math.max(1, items.length)]?.photos[0] };
-  });
-  const hasInfos = practical.length > 0 || !!(r.advice && r.id.startsWith("gt-"));
-  const sections = [["sec-etapes", "Points de passage"], ["sec-carte", "Carte"], ["sec-profil", "Élévation"], ["sec-montees", "Montée et descente"], ["sec-meteo", "Météo"], ["sec-infos", "Infos pratiques"], ["sec-faq", "Questions"]].filter(([sid]) => sid !== "sec-infos" || hasInfos);
+  const voies = VOIES[r.id];
+  const ptPhotos = PT_PHOTOS[r.id] || [];
+  const sections = [["sec-etapes", "Point de passage"], ["sec-voies", "Type de voies et surface"], ["sec-profil", "Élévation"], ["sec-montees", "Montée et descente"], ["sec-meteo", "Météo"], ["sec-avis", "Commentaires"]]
+    .filter(([sid]) => sid !== "sec-voies" || voies);
+  const lastWp = wps.length - 1;
+  const mapHTML = `
+              <div class="map-box" id="sec-carte">
+                <h4 class="vh" id="h-map">Carte du parcours</h4>
+                <div class="map fiche-map" id="f-map"></div>
+                <p class="map-note">${esc(r.source.trace)}. Les numéros sur la carte sont ceux des points de passage. Quand la carte a le focus, les flèches la déplacent.</p>
+              </div>`;
+  const wpPhotosHTML = (pts, i) => !pts.length ? "" : `
+                  <div class="tl-photos${pts.length === 1 ? " one" : ""}">${pts.map((p, k) => `<button type="button" data-wp="${i}" data-k="${k}" aria-label="Agrandir la photo ${k + 1} sur ${pts.length} du point ${i + 1} : ${esc(p.alt)}"><img src="${esc(wmWidth(p.src, k ? 500 : 960))}" alt="" loading="lazy"></button>`).join("")}</div>
+                  <p class="credit">Photos Wikimedia Commons : ${pts.map((p) => `<a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener">${esc(p.credit)}<span class="vh"> (photo ${pts.indexOf(p) + 1}, nouvelle fenêtre)</span></a> (${p.licenseUrl ? `<a href="${esc(p.licenseUrl)}" target="_blank" rel="noopener">${esc(p.license)}<span class="vh"> (nouvelle fenêtre)</span></a>` : esc(p.license)})`).join(", ")}</p>`;
   const leadTxt = r.ambiance || r.teaser ? lead : "";
   const updated = r.source.updated ? new Date(r.source.updated).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
 
@@ -564,29 +588,31 @@ function viewFiche(id) {
 
           <div class="fiche-intro">
             <div class="fix-row"><span class="fix" aria-hidden="true">3.2 fil d'Ariane</span><span class="fix" aria-hidden="true">9.1 titres</span><span class="fix" aria-hidden="true">1.1 alternatives</span></div>
-            ${levelPill(r.level)}
             <h1 id="h-page" tabindex="-1">${esc(r.name)}</h1>
             <dl class="statline">
-              <div><dt>${ICONS.clock}<span class="vh">Durée</span></dt><dd>${dur(r.durationMin)}</dd></div>
-              <div><dt>${ICONS.ruler}<span class="vh">Distance</span></dt><dd>${fr1(r.km)} km</dd></div>
-              <div><dt>${ICONS.up}<span class="vh">Dénivelé positif</span></dt><dd>${fr0(r.ascent)} m</dd></div>
-              <div><dt>${ICONS.down}<span class="vh">Dénivelé négatif</span></dt><dd>${fr0(r.descent)} m</dd></div>
+              <div><dt>${ICONS.ruler}<span class="vh">Distance</span></dt><dd><b>${fr1(r.km)}</b> km</dd></div>
+              <div><dt>${ICONS.clock}<span class="vh">Durée</span></dt><dd><b>${dur(r.durationMin)}</b></dd></div>
+              <div><dt>${ICONS.up}<span class="vh">Dénivelé positif</span></dt><dd><b>${fr0(r.ascent)}</b> m de dénivelé</dd></div>
+              <div><dt class="vh">Difficulté</dt><dd>${levelPill(r.level)}</dd></div>
             </dl>
-            <p class="muted">${esc(r.route)} · ${esc(r.commune)} (${esc(r.dept.code)}) · Randonnée n° <span class="tabular">${esc(r.ref)}</span></p>
           </div>
 
           <div class="fiche-desc prose">
-            ${leadTxt ? `<p class="lead">${esc(leadTxt)}</p>` : ""}
+            ${leadTxt ? `<p>${esc(leadTxt)}</p>` : ""}
             ${r.description ? `<h2 class="h-sub">À quoi s'attendre sur ce sentier</h2>${r.description}` : ""}
+            <h2 class="h-sub">Planifier votre visite</h2>
+            <p>Départ : ${esc(r.departure)}.</p>
+            ${practical.length ? `<dl class="practical">${practical.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>` : ""}
+            ${r.advice && r.id.startsWith("gt-") ? `<details class="data"><summary>Lire les recommandations du gestionnaire</summary><div class="prose" style="margin-top:10px">${r.advice}</div></details>` : ""}
             <h2 class="h-sub">Détails du sentier</h2>
             <ul>
               <li>Distance : ${fr1(r.km)} km</li>
               <li>Dénivelé positif : ${fr0(r.ascent)} mètres</li>
               <li>Difficulté : ${esc(LEVELS[r.level].toLowerCase())}</li>
               <li>Temps estimé : ${dur(r.durationMin)}</li>
+              <li>Type de parcours : ${esc(r.route.toLowerCase())}, au départ de ${esc(r.commune)} (${esc(r.dept.code)})</li>
             </ul>
-            ${updated ? `<p class="updated">Dernière mise à jour : ${updated}</p>` : ""}
-            <div class="callout">${ICONS.busBig}<p>${hasTransport ? `<b>Accessible sans voiture</b> ${esc((document.createRange().createContextualFragment(r.transport).textContent || "").slice(0, 160))}` : `<b>Départ : ${esc(r.departure)}</b>Pensez au covoiturage pour rejoindre le point de départ.`}</p></div>
+            <p class="updated">${updated ? `Dernière mise à jour : ${updated} · ` : ""}Randonnée n° <span class="tabular">${esc(r.ref)}</span></p>
           </div>
 
           <nav class="page-nav" aria-label="Sur cette page">
@@ -594,27 +620,30 @@ function viewFiche(id) {
           </nav>
 
           <section id="sec-etapes" aria-labelledby="h-etapes" tabindex="-1">
-            <h2 id="h-etapes">Points de passage</h2>
-            <ol class="timeline">${wps.map((w) => `
+            <h2 id="h-etapes">Point de passage</h2>
+            <ol class="timeline">${wps.map((w, i) => `
               <li>
-                <span class="tl-km">${fr1(w.km)} km</span>
-                <span class="tl-dot" aria-hidden="true">${w.mark}</span>
+                <div class="tl-mark" aria-hidden="true"><span class="tl-dot">${i + 1}</span>${i ? `<span class="tl-km">${fr1(w.km)} km</span>` : ""}</div>
                 <div class="tl-body">
-                  <h3><span class="vh">${w.kind} : </span>${esc(w.name)} <span class="alt">· ${fr0(w.alt)} m</span></h3>
-                  ${w.text ? `<p>${esc(w.text)}</p>` : ""}
+                  ${wpPhotosHTML(ptPhotos[i] || [], i)}
+                  <h3>${esc(w.name)}</h3>
+                  <p class="tl-kind">${ICONS.pin}<span>${w.kind}<span class="vh">,</span> · <span class="tabular">km ${fr1(w.km)}</span> · <span class="tabular">${fr0(w.alt)} m</span></span></p>
+                  ${w.text ? `<p class="tl-text">${esc(w.text)}</p>` : ""}
                   <button type="button" class="link-btn" data-step="${w.idx}">Voir ${w.kind === "Départ" ? "le départ" : w.kind === "Arrivée" ? "l'arrivée" : w.kind === "Point haut" ? "le point haut" : `l'${w.kind.toLowerCase()}`} sur la carte</button>
+                  ${i === lastWp ? mapHTML : ""}
                 </div>
               </li>`).join("")}
             </ol>
           </section>
 
-          <section id="sec-carte" aria-labelledby="h-map" tabindex="-1">
-            <h2 id="h-map">Carte du parcours</h2>
-            <div class="card-box map-box">
-              <div class="map fiche-map" id="f-map"></div>
-              <p class="map-note">${esc(r.source.trace)}. La carte se déplace aussi au clavier avec les flèches quand elle a le focus.</p>
+          ${voies ? `<section id="sec-voies" aria-labelledby="h-voies" tabindex="-1">
+            <h2 id="h-voies">Type de voie et surfaces</h2>
+            <div class="card-box voies">
+              ${voiesHTML("Types de voies", voies.types, VOIE_COLORS)}
+              ${voiesHTML("Surfaces", voies.surfaces, SURF_COLORS)}
+              <p class="map-note">Calculé à partir des voies OpenStreetMap suivies par le tracé. « Inconnu » : voie ou surface non renseignée dans OpenStreetMap.</p>
             </div>
-          </section>
+          </section>` : ""}
 
           <section id="sec-profil" aria-labelledby="h-profil" tabindex="-1">
             <h2 id="h-profil">Élévation</h2>
@@ -631,28 +660,6 @@ function viewFiche(id) {
             <div class="weather" id="weather" aria-live="polite"><p>Chargement des prévisions…</p></div>
           </section>
 
-          ${hasInfos ? `<section id="sec-infos" aria-labelledby="h-infos" tabindex="-1">
-            <h2 id="h-infos">Infos pratiques</h2>
-            <div class="card-box prose">
-              ${practical.length ? `<dl class="practical">${practical.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>` : ""}
-              ${r.advice && r.id.startsWith("gt-") ? `<details class="data"><summary>Lire les recommandations du gestionnaire</summary><div class="prose" style="margin-top:10px">${r.advice}</div></details>` : ""}
-            </div>
-          </section>` : ""}
-        </article>
-
-        <aside class="fiche-side" aria-label="Actions et sécurité">
-          <div class="side-card actions-card">
-            <ul>
-              <li><button type="button" class="side-action" id="f-fav" aria-pressed="${fav}">${ICONS.bookmark} Enregistrer dans mes favoris</button></li>
-              <li><button type="button" class="side-action" id="f-gpx">${ICONS.download} Télécharger le tracé GPX</button></li>
-              <li><button type="button" class="side-action" data-step="0">${ICONS.pin} Voir le départ sur la carte</button></li>
-              <li><button type="button" class="side-action" id="f-print">${ICONS.print} Imprimer la fiche</button></li>
-              <li><button type="button" class="side-action" id="f-copy">${ICONS.share} Partager : copier le lien</button></li>
-              ${r.source.pdf ? `<li><a class="side-action" href="${esc(r.source.pdf)}" target="_blank" rel="noopener">${ICONS.pdf} Fiche PDF officielle<span class="vh"> (nouvelle fenêtre)</span></a></li>` : ""}
-            </ul>
-            <a class="btn btn-primary btn-block" href="https://www.openstreetmap.org/directions?to=${r.start[0]}%2C${r.start[1]}" target="_blank" rel="noopener">${ICONS.navigate} Naviguer jusqu'au départ<span class="vh"> (OpenStreetMap, nouvelle fenêtre)</span></a>
-            <p class="status-msg" id="f-status" role="status"></p>
-          </div>
           <section class="safety" aria-labelledby="h-secu">
             <h2 id="h-secu">${ICONS.warn} Sécurité</h2>
             <span class="fix" aria-hidden="true">3.2 texte 14,9:1 (avant 3,23:1)</span>
@@ -664,28 +671,43 @@ function viewFiche(id) {
               <li>En cas d'urgence, appelez le <strong class="tabular">112</strong>.</li>
             </ul>
           </section>
+
+          <section id="sec-avis" aria-labelledby="h-avis" tabindex="-1">
+            <h2 id="h-avis">Commentaires</h2>
+            <div class="card-box"><p>Aucun commentaire sur cette randonnée pour le moment.</p></div>
+          </section>
+
           <p class="credit">Source : ${esc(r.source.name)}${r.source.provider ? ` – ${esc(r.source.provider)}` : ""}.</p>
+        </article>
+
+        <aside class="fiche-side" aria-label="Actions sur la randonnée">
+          <div class="side-card actions-card">
+            <ul>
+              <li><button type="button" class="side-action" id="f-fav" aria-pressed="${fav}">${ICONS.bookmark} Enregistrer</button></li>
+              <li><button type="button" class="side-action" data-soon="Éditer l'itinéraire">${ICONS.edit} Éditer l'itinéraire</button></li>
+              <li><button type="button" class="side-action" id="f-gpx">${ICONS.download} Télécharger GPX</button></li>
+              <li><button type="button" class="side-action" data-soon="Déplacer le point de départ">${ICONS.move} Déplacer le point de départ</button></li>
+              <li><button type="button" class="side-action" id="f-print">${ICONS.print} Imprimer</button></li>
+              <li><button type="button" class="side-action" id="f-copy">${ICONS.share} Partager</button></li>
+              <li><button type="button" class="side-action" id="f-embed">${ICONS.code} Intégrer sur un site web</button></li>
+              <li><button type="button" class="side-action" data-soon="Signaler un problème">${ICONS.info} Signaler un problème</button></li>
+              <li><button type="button" class="side-action" data-soon="Signaler un accès restreint">${ICONS.info} Signaler un accès restreint</button></li>
+              ${r.source.pdf ? `<li><a class="side-action" href="${esc(r.source.pdf)}" target="_blank" rel="noopener">${ICONS.pdf} Fiche PDF officielle<span class="vh"> (nouvelle fenêtre)</span></a></li>` : ""}
+            </ul>
+            <a class="btn btn-primary btn-block" href="https://www.openstreetmap.org/directions?to=${r.start[0]}%2C${r.start[1]}" target="_blank" rel="noopener">${ICONS.navigate} Naviguer<span class="vh"> jusqu'au départ (OpenStreetMap, nouvelle fenêtre)</span></a>
+            <button type="button" class="btn btn-sand btn-block" id="f-mobile">${ICONS.phone} Envoyer vers mobile</button>
+            <p class="status-msg" id="f-status" role="status"></p>
+          </div>
         </aside>
       </div>
-
-      <section class="section faq-center" id="sec-faq" aria-labelledby="h-faq" tabindex="-1">
-        <h2 id="h-faq" style="font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:600">Questions fréquentes</h2>
-        ${faq(r, hasTransport)}
-      </section>
-
-      ${carousel("car-near", "Randonnées à proximité", near.map(({ x, d }) => nearHTML(x, d)).join(""))}
-
-      <section class="section section-tight" aria-labelledby="h-also">
-        <div class="carousel-head"><h2 id="h-also">Vous aimerez aussi</h2></div>
-        <ul class="track" aria-labelledby="h-also" style="grid-auto-columns:minmax(14rem,1fr)">
-          ${collections.map((c) => `<li><a class="collection" href="${resultsHash({ name: r.commune, lat: r.start[0], lon: r.start[1] }, "100", { ...clone(DEFAULTS), tags: [c.k] })}">${c.ph ? `<img src="${esc(c.ph.thumb)}" alt="" loading="lazy" data-fallback="${c.k}">` : ""}<span><b>${esc(c.t)}</b><small>${randos(c.n)} près de ${esc(r.commune)}</small></span></a></li>`).join("")}
-        </ul>
-      </section>
       <div class="page-bottom"></div>
     </div>`,
     wire() {
       wireGallery(main, r);
-      wireCarousels(main);
+      $$("[data-wp]").forEach((b) => b.addEventListener("click", () => {
+        const i = +b.dataset.wp;
+        openLightbox({ name: `Point ${i + 1} : ${wps[i].name}`, photos: ptPhotos[i].map((p) => ({ ...p, src: wmWidth(p.src, 960) })) }, +b.dataset.k, b);
+      }));
       wireTabs($("#climbs"));
       loadWeather($("#weather"), r);
       const navLinks = $$(".page-nav a");
@@ -702,20 +724,53 @@ function viewFiche(id) {
         t.focus({ preventScroll: true });
         setCurrent(a.dataset.jump);
       }));
-      const map = createMap($("#f-map"), { label: `Carte du parcours ${r.name}`, center: r.start, zoom: 13 });
+      const map = createMap($("#f-map"), { label: `Carte du parcours ${r.name}`, center: r.start, zoom: 13, layersPosition: "topleft", zoomPosition: "bottomright" });
       let pos = null;
       if (map) {
         maps.push(map);
         const line = r.geom.map((p) => [p[0], p[1]]);
         L.polyline(line, { color: "#FFFFFF", weight: 8, opacity: 0.9, interactive: false }).addTo(map);
         const pl = L.polyline(line, { color: "#1F5FA8", weight: 4.5, opacity: 1, interactive: false }).addTo(map);
-        wps.forEach((w) => {
-          const m = L.marker([w.lat, w.lon], { icon: w.mark === "D" ? startIcon() : stepIcon(w.mark), keyboard: true, title: `${w.kind} : ${w.name}` }).addTo(map)
+        wps.forEach((w, i) => {
+          const m = L.marker([w.lat, w.lon], { icon: i === 0 ? startIcon() : stepIcon(String(i + 1)), keyboard: true, title: `${i + 1}. ${w.kind} : ${w.name}` }).addTo(map)
             .bindPopup(`<strong>${esc(w.kind)}</strong><br>${esc(w.name)}<br><span class="pp-meta">km ${fr1(w.km)} · ${fr0(w.alt)} m</span>`);
-          m.getElement()?.setAttribute("aria-label", `${w.kind} : ${w.name}`);
+          m.getElement()?.setAttribute("aria-label", `Point ${i + 1}, ${w.kind} : ${w.name}`);
         });
-        map.fitBounds(pl.getBounds().pad(0.08), { animate: false });
+        const fit = () => map.fitBounds(pl.getBounds().pad(0.08), { animate: false });
+        fit();
         pos = L.marker(r.start, { icon: posIcon(), keyboard: false, interactive: false });
+        // Contrôles placés comme dans la maquette : agrandir en haut à droite, zoom + recentrer en bas à droite.
+        const box = $("#sec-carte");
+        const ctl = (pos0, html, label, onClick) => {
+          const C = L.Control.extend({
+            onAdd() {
+              const d = L.DomUtil.create("div", "leaflet-bar map-ctl");
+              d.innerHTML = `<button type="button" aria-label="${label}" title="${label}">${html}</button>`;
+              L.DomEvent.disableClickPropagation(d);
+              d.firstChild.addEventListener("click", () => onClick(d.firstChild));
+              return d;
+            },
+          });
+          new C({ position: pos0 }).addTo(map);
+        };
+        ctl("bottomright", ICONS.locate, "Recentrer la carte sur le parcours", () => { fit(); announce("Carte recentrée sur tout le parcours."); });
+        map.zoomControl.remove(); map.zoomControl.addTo(map); // zoom au-dessus du bouton « recentrer », comme la maquette
+        const setFull = (on, btn) => {
+          box.classList.toggle("is-full", on);
+          document.documentElement.classList.toggle("map-open", on);
+          btn.setAttribute("aria-pressed", String(on));
+          btn.setAttribute("aria-label", on ? "Réduire la carte" : "Agrandir la carte");
+          btn.title = btn.getAttribute("aria-label");
+          setTimeout(() => { map.invalidateSize(); fit(); }, 50);
+        };
+        ctl("topright", ICONS.expand, "Agrandir la carte", (btn) => {
+          const on = !box.classList.contains("is-full");
+          setFull(on, btn);
+          btn.focus();
+        });
+        const fullBtn = box.querySelector(".map-ctl button[aria-label='Agrandir la carte']");
+        fullBtn.setAttribute("aria-pressed", "false");
+        box.addEventListener("keydown", (e) => { if (e.key === "Escape" && box.classList.contains("is-full")) { e.stopPropagation(); setFull(false, fullBtn); fullBtn.focus(); } });
       }
       renderProfile($("#f-profile"), r, (i) => {
         if (!map || !pos) return;
@@ -723,7 +778,7 @@ function viewFiche(id) {
         pos.setLatLng([r.geom[i][0], r.geom[i][1]]);
         if (!map.hasLayer(pos)) pos.addTo(map);
         pos.getElement()?.setAttribute("aria-hidden", "true");
-      });
+      }, wps.map((w, i) => ({ km: w.km, label: String(i + 1), name: `${w.kind} : ${w.name}` })));
       $$("[data-step]").forEach((b) => b.addEventListener("click", () => {
         const w = wps[+b.dataset.step];
         if (!map) return;
@@ -748,10 +803,22 @@ function viewFiche(id) {
         setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         say(`Fichier ${slug(r.name)}.gpx téléchargé.`);
       });
+      const copy = async (txt, ok) => {
+        try { await navigator.clipboard.writeText(txt); say(ok); }
+        catch { say(`Copie impossible. Copiez ce texte : ${txt}`); }
+      };
       $("#f-copy").addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(location.href); say("Lien copié dans le presse-papiers."); }
-        catch { say(`Copie impossible. Voici le lien : ${location.href}`); }
+        if (navigator.share) {
+          try { await navigator.share({ title: r.name, url: location.href }); return; }
+          catch (e) { if (e.name === "AbortError") return; }
+        }
+        copy(location.href, "Lien de la randonnée copié dans le presse-papiers.");
       });
+      $("#f-embed").addEventListener("click", () => copy(
+        `<iframe src="${location.href}" title="${r.name.replace(/"/g, "&quot;")} – Visorando" width="600" height="450" loading="lazy"></iframe>`,
+        "Code d'intégration copié dans le presse-papiers. Collez-le dans votre page web."));
+      $("#f-mobile").addEventListener("click", () => copy(location.href, "Lien copié. Collez-le dans un message pour l'ouvrir sur votre téléphone."));
+      $$("[data-soon]").forEach((b) => b.addEventListener("click", () => say(`« ${b.dataset.soon} » demande un compte Visorando : cette fonction n'est pas simulée dans la maquette.`)));
       $("#f-print").addEventListener("click", () => window.print());
     },
   };

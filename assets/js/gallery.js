@@ -12,18 +12,14 @@ export function galleryHTML(r) {
   if (!ph.length) return "";
   const btn = (i, cls, extra = "") => `<button type="button" class="${cls}" data-lb="${i}" aria-label="Agrandir la photo ${i + 1} sur ${ph.length} : ${esc(ph[i].alt)}">
       <img src="${esc(i === 0 ? ph[i].src : ph[i].thumb)}" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} data-fallback="${esc(r.id + i)}">${extra}</button>`;
-  const side = ph.slice(1, 3).map((_, k) => {
-    const i = k + 1;
-    const last = i === Math.min(2, ph.length - 1);
-    return btn(i, "", last ? `<span class="g-count" aria-hidden="true">${ICONS.camera} ${ph.length} photos</span>` : "");
-  }).join("");
+  const side = ph.slice(1, 3).map((_, k) => btn(k + 1, "")).join("");
   return `
   <section aria-label="Photos de la randonnée">
     <div class="gallery" ${ph.length === 1 ? 'style="grid-template-columns:1fr"' : ""}>
-      <div class="g-main">${btn(0, "", ph.length === 1 ? `<span class="g-count" aria-hidden="true">${ICONS.camera} 1 photo</span>` : "")}</div>
+      <div class="g-main">${btn(0, "")}</div>
       ${ph.length > 1 ? `<div class="g-side" ${ph.length === 2 ? 'style="grid-template-rows:1fr"' : ""}>${side}</div>` : ""}
     </div>
-    <p class="credit">${credit(ph[0])}${ph.length > 1 ? " · Crédits des autres photos dans la visionneuse" : ""}</p>
+    <p class="credit">${credit(ph[0])}${ph.length > 1 ? ` · ${ph.length} photos, crédits des autres dans la visionneuse` : ""}</p>
   </section>`;
 }
 

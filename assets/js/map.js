@@ -33,8 +33,10 @@ export function createMap(el, o) {
   }
   const map = L.map(el, {
     center: o.center || [45.6, 4.75], zoom: o.zoom || 9,
-    scrollWheelZoom: false, keyboard: true, zoomControl: true, attributionControl: true,
+    scrollWheelZoom: false, keyboard: true, zoomControl: false, attributionControl: true,
   });
+  // Boutons de zoom nommés en français dès leur création (RGAA 6.2) : Leaflet en fait aussi l'aria-label.
+  map.zoomControl = L.control.zoom({ position: o.zoomPosition || "topleft", zoomInTitle: "Zoomer", zoomOutTitle: "Dézoomer" }).addTo(map);
   const layers = baseLayers();
   layers["Plan IGN"].addTo(map);
   // Repli automatique sur OpenStreetMap si le serveur IGN ne répond pas.
@@ -46,7 +48,7 @@ export function createMap(el, o) {
       layers["OpenStreetMap"].addTo(map);
     }
   });
-  L.control.layers(layers, null, { position: "topright", collapsed: true }).addTo(map);
+  L.control.layers(layers, null, { position: o.layersPosition || "topright", collapsed: true }).addTo(map);
   L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
   map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
 

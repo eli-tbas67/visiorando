@@ -26,7 +26,7 @@ Une connexion internet est nécessaire pour les fonds de carte et les photos.
 |---|---|---|
 | Accueil | `#/` | Hero photo + recherche (suggestions, rayon, « Autour de moi », filtres), derniers itinéraires, envies, carrousel Pilat, chiffres |
 | Résultats | `#/recherche?lieu=Lyon` | Hero photo + recherche, mosaïque, texte, carte synchronisée avec « Nos meilleures sélections », tri, filtres retirables, « Afficher plus » |
-| Fiche | `#/rando/ly-tony-garnier` | Structure de la maquette Figma (écran 4) : mosaïque photo + visionneuse, carte d'actions à droite (favoris, GPX, départ sur la carte, impression, partage, « Naviguer ») et encadré Sécurité, description et détails du sentier, onglets « Sur cette page », points de passage, carte du tracé, élévation au clavier reliée à la carte, montée et descente, météo en direct (Open-Meteo), infos pratiques, questions fréquentes, randos à proximité |
+| Fiche | `#/rando/ly-tony-garnier` | Maquette Figma (écran 4) : fil d'Ariane, mosaïque de 3 photos + visionneuse, titre et chiffres clés, description, « Planifier votre visite » et détails du sentier ; bloc d'actions fixe à droite (9 actions, « Naviguer », « Envoyer vers mobile ») ; onglets « Sur cette page » ; frise numérotée des points de passage (photos Wikimedia prises à proximité) terminée par la carte du tracé (agrandir, zoom, recentrer) ; type de voies et surfaces ; élévation avec bandes de pente, menu Élévation / Pente, curseur clavier relié à la carte et tableau ; montée et descente ; météo du jour (Open-Meteo) ; encadré Sécurité ; commentaires |
 | Favoris | `#/favoris` | Randonnées enregistrées dans le navigateur |
 | Accessibilité | `#/accessibilite` | Les 13 non-conformités de l'audit et leur correction, protocole de test |
 
@@ -41,6 +41,12 @@ Le réglage **« Montrer les corrections RGAA »** (dans le menu et le pied de p
 - Polices : Atkinson Hyperlegible (Braille Institute), Bricolage Grotesque, sous licence OFL.
 
 Le fichier `data/randos.json` contient toutes les données. `data/build_data.py` est le script qui l'a généré.
+
+`data/voies.json` (types de voies et surfaces de chaque fiche) est calculé par `data/build_voies.py` à partir des voies OpenStreetMap (API Overpass) que suit le tracé. Une portion est « Inconnu » quand OpenStreetMap ne renseigne pas la voie ou sa surface.
+
+`data/points-photos.json` (photos des points de passage) est rempli par `data/build_points_photos.py` : photos Wikimedia Commons prises à moins de 150 m de chaque point, au plus 3 par point, auteur et licence affichés sous les photos. Un point sans photo proche reste sans photo.
+
+Sur la fiche, « Éditer l'itinéraire », « Déplacer le point de départ » et les deux « Signaler » demandent un compte Visorando : dans la maquette, ils affichent seulement un message de statut qui le dit.
 
 ## Tests effectués
 
@@ -66,7 +72,7 @@ Outil automatique : axe-core 4.10 (WCAG 2.1 A et AA) ne relève aucune violation
 
 ```
 index.html             page unique (routeur par #)
-assets/css/app.css     styles, thèmes clair et sombre, impression
+assets/css/app.css     styles (thème clair), impression
 assets/js/app.js       routeur et vues
 assets/js/filters.js   panneau Filtres (dialog)
 assets/js/combobox.js  champ de recherche à suggestions
@@ -75,6 +81,8 @@ assets/js/profile.js   profil altimétrique + tableau
 assets/js/gallery.js   galerie et visionneuse
 assets/js/store.js     favoris (localStorage)
 data/randos.json       44 randonnées
+data/voies.json        types de voies et surfaces (OpenStreetMap)
+data/points-photos.json photos des points de passage (Wikimedia Commons)
 vendor/leaflet/        Leaflet 1.9.4
 server.mjs             serveur local sans dépendance
 ```
