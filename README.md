@@ -63,10 +63,17 @@ Tests manuels (procédure reproductible) :
 2. **Affichage à 320 px** (critère 10.11), sur les 7 pages. Résultat : **échec sur la page Accessibilité**, texte coupé à droite (page de 356 px). Cause : la grille `.doc` s'élargissait à la taille du tableau. Correction : `grid-template-columns: minmax(0, 1fr)` sur `.doc` et `position: relative` sur `.table-wrap`. **Retest le 12/11/2026 : plus de défilement horizontal sur les 7 pages.**
 3. **Zoom 200 %** (fenêtre de 640 px) : pas de défilement horizontal sur l'accueil, les résultats, une fiche et la page Accessibilité.
 4. **Message de statut** (critère 7.5) : après une recherche « Lyon », la zone `role="status"` contient « 41 randonnées trouvées autour de Lyon… ».
+5. **Lecteur d'écran** : VoiceOver avec Chrome (macOS), le 12/11/2026, sur la fiche Tony Garnier. Phrases relevées dans le panneau de VoiceOver :
+   - à l'ouverture, le titre de la page est lu (« Trouver une randonnée · Visorando (refonte) », critère 8.6) ;
+   - photo d'un point de passage : « Agrandir la photo 1 sur 3 du point 2 : Lyon (France/Rhône) - Musée Tony Garnier, accès, bouton » (1.2, 6.2) ;
+   - marqueur de la carte : « Point 1, Départ : Arrêt Jet d'Eau – Mendès France, bouton, Carte du parcours Murs peints de Lyon : Tony Garnier » ; la carte est annoncée comme « carte » (6.2) ;
+   - « Enregistrer » et « Agrandir la carte » sont annoncés comme boutons de basculement (état activé / non activé) ;
+   - curseur du profil : « 0,7 kilomètres, altitude 174 mètres, pente 1 % » à chaque flèche.
+   Défaut trouvé et corrigé : le contour de focus des onglets « Sur cette page » était rogné par la liste qui défile ; il est maintenant dessiné à l'intérieur du lien. Reste à faire : NVDA sous Windows.
 
 Outil automatique : axe-core 4.10 (WCAG 2.1 A et AA) ne relève aucune violation. Un outil ne détecte qu'une partie des problèmes : ce résultat ne prouve pas la conformité.
 
-**Encore à vérifier** : écoute réelle avec NVDA et VoiceOver, contrastes des textes posés sur photo mesurés à la main (Colour Contrast Analyser), zoom du texte seul à 200 %.
+**Encore à vérifier** : écoute avec NVDA (VoiceOver testé, voir test 5), contrastes des textes posés sur photo mesurés à la main (Colour Contrast Analyser), zoom du texte seul à 200 %.
 
 ## Usage de l'IA
 

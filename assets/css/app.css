@@ -322,6 +322,8 @@ html:not(.annot) .fix-row { display: none; }
 .page-nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 10px; background: transparent; border: 0; color: var(--ink-2); text-decoration: none; font-family: var(--f-display); font-weight: 600; font-size: 1.05rem; white-space: nowrap; }
 .page-nav a[aria-current] { background: var(--sand); color: var(--ink); }
 .page-nav a:hover { color: var(--ink); text-decoration: underline; }
+/* La liste défile horizontalement et rognerait un contour extérieur : contour placé à l'intérieur du lien (2.4.7). */
+.page-nav a:focus-visible { outline-offset: -3px; }
 
 .timeline { list-style: none; margin: 0; padding: 0; display: grid; }
 .timeline > li { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: 0 14px; position: relative; padding-bottom: 32px; }
