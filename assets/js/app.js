@@ -879,6 +879,7 @@ function viewA11y() {
       <div class="page-head">
         <h1 id="h-page" tabindex="-1">Accessibilité de la refonte</h1>
         <p class="lead" style="max-width:62ch">Cette maquette corrige les 13 non-conformités relevées lors de l'audit RGAA 4.1.2 partiel de visorando.com (audit d'Eliott et Lola, octobre-novembre 2026). Elle n'est pas encore déclarée conforme : il reste à la tester avec un lecteur d'écran.</p>
+        <p style="max-width:62ch">L'audit a été réalisé sur la fiche <a href="https://www.visorando.com/randonnee-a-flanc-de-colline-entre-sainte-foy-les-/" target="_blank" rel="noopener">« À flanc de colline entre Sainte-Foy-lès-Lyon et Oullins »<span class="vh"> (visorando.com, nouvelle fenêtre)</span></a>. Les défauts relevés viennent du modèle de fiche commun à toutes les randonnées : dans la refonte, leurs corrections sont démontrées sur la fiche <a href="#/rando/ly-tony-garnier">« Murs peints de Lyon : Tony Garnier »</a>, qui utilise ce même modèle.</p>
       </div>
       <div class="doc">
         <section aria-labelledby="h-corr">

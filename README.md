@@ -1,6 +1,8 @@
 # Visorando accessible — refonte de cours
 
 Prototype codé de la refonte de visorando.com, construit à partir de l'audit RGAA 4.1.2 partiel du 15 octobre 2026.
+
+L'audit a été réalisé sur la fiche visorando.com [« À flanc de colline entre Sainte-Foy-lès-Lyon et Oullins »](https://www.visorando.com/randonnee-a-flanc-de-colline-entre-sainte-foy-les-/). Les défauts relevés viennent du modèle de fiche commun à toutes les randonnées : dans la refonte, leurs corrections sont démontrées sur la fiche « Murs peints de Lyon : Tony Garnier » (`#/rando/ly-tony-garnier`), qui utilise ce même modèle.
 Projet de cours, sans lien avec le site officiel.
 
 ## Lancer le site
@@ -66,6 +68,7 @@ Outil automatique : axe-core 4.10 (WCAG 2.1 A et AA) ne relève aucune violation
 - Prototype codé avec un agent IA de développement (Claude Code), à partir de la maquette Figma et des barrières de l'audit.
 - Propositions de l'agent vérifiées dans le navigateur (clavier, 320 px) avant d'être gardées.
 - Relecture assistée par IA le 12/11/2026 : elle a repéré le débordement à 320 px de la page Accessibilité, corrigé puis retesté (test 2 ci-dessus).
+- Mise en conformité de la fiche avec la maquette Figma (écran 4) assistée par IA le 12/11/2026, vérifiée avec axe-core (0 violation sur 7 pages), au clavier et à 320 px. Les photos des points de passage sont choisies automatiquement sur Wikimedia Commons (à moins de 150 m du point) puis filtrées.
 - L'IA ne certifie pas l'accessibilité : la refonte n'est déclarée conforme à aucun référentiel.
 
 ## Structure
